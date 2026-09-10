@@ -1,0 +1,83 @@
+/* Efectos de pantalla completa. Todos son puramente decorativos. */
+
+.flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.flashCorrect {
+  background: radial-gradient(circle at center, var(--accent-soft), transparent 70%);
+  animation: flashOut 420ms var(--ease-out) forwards;
+}
+
+.flashWrong {
+  background: radial-gradient(circle at center, rgba(255, 59, 92, 0.28), transparent 72%);
+  animation: flashOut 620ms var(--ease-out) forwards;
+}
+
+@keyframes flashOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+}
+
+.shake {
+  animation: shake 380ms var(--ease-out);
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  20% {
+    transform: translate3d(-9px, 4px, 0);
+  }
+  40% {
+    transform: translate3d(8px, -5px, 0);
+  }
+  60% {
+    transform: translate3d(-6px, -3px, 0);
+  }
+  80% {
+    transform: translate3d(4px, 3px, 0);
+  }
+}
+
+/* Viñeta que late cuando la racha está alta. */
+.vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+  box-shadow: inset 0 0 min(28vw, 240px) var(--accent-soft);
+  animation: vignettePulse 1200ms ease-in-out infinite;
+}
+
+@keyframes vignettePulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* La pantalla se desatura un instante al fallar: la "cámara lenta". */
+.slowmo {
+  filter: saturate(0.25) brightness(0.7);
+  transition: filter 220ms var(--ease-out);
+}

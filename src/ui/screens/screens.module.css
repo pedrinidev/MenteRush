@@ -1,0 +1,361 @@
+/* Layout de las tres pantallas. */
+
+.screen {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+  text-align: center;
+  animation: screenIn 260ms var(--ease-out) both;
+}
+
+@keyframes screenIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Home ---- */
+.title {
+  font-size: clamp(46px, 13vw, 92px);
+  font-weight: 900;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+  margin: 0;
+}
+
+.titleAccent {
+  color: var(--accent);
+  text-shadow: 0 0 44px var(--accent-glow);
+}
+
+.tagline {
+  /* `auto` a los lados: sin él la caja se queda pegada a la izquierda del
+     contenedor, que es tan ancho como el título. */
+  margin: 14px auto 0;
+  max-width: 30ch;
+  color: var(--text-dim);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.modeSwitch {
+  display: flex;
+  /* Se ciñe a sus botones: si no, al ser un bloque se estira al ancho del padre,
+     que crece con el texto de ayuda y deja un hueco a la derecha. */
+  width: fit-content;
+  margin-inline: auto;
+  gap: 10px;
+  padding: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.modeOption {
+  padding: 11px 22px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dim);
+  transition: all 160ms var(--ease-out);
+}
+
+.modeOption.selected {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.modeHint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 10px;
+  width: min(340px, 88vw);
+}
+
+.statCard {
+  padding: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.statValue {
+  display: block;
+  font-size: 25px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.statLabel {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.primaryButton {
+  width: min(340px, 88vw);
+  padding: 19px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 12px 40px var(--accent-glow);
+  transition: transform 110ms var(--ease-out);
+}
+
+.primaryButton:active {
+  transform: scale(0.97);
+}
+
+.secondaryButton {
+  width: min(340px, 88vw);
+  padding: 15px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.toggles {
+  display: flex;
+  gap: 10px;
+}
+
+.toggle {
+  padding: 9px 15px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.toggle.on {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.keyHint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.keyHint kbd {
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  font-family: inherit;
+  font-size: 11px;
+}
+
+/* ---- Game ---- */
+.game {
+  justify-content: space-between;
+  gap: 0;
+}
+
+.hud {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.hudBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 74px;
+}
+
+.hudBlock.right {
+  align-items: flex-end;
+}
+
+.hudLabel {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.stage {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.footer {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.countdownNumber {
+  font-size: clamp(90px, 30vw, 200px);
+  font-weight: 900;
+  color: var(--accent);
+  text-shadow: 0 0 70px var(--accent-glow);
+  animation: countdownPop 700ms var(--ease-pop);
+}
+
+@keyframes countdownPop {
+  from {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.prompt {
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: screenIn 200ms var(--ease-pop) both;
+}
+
+.feedbackMark {
+  font-size: clamp(64px, 18vw, 120px);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.feedbackCorrect {
+  color: var(--accent);
+  text-shadow: 0 0 50px var(--accent-glow);
+}
+
+.feedbackWrong {
+  color: var(--danger);
+}
+
+.feedbackDetail {
+  font-size: 16px;
+  color: var(--text-dim);
+}
+
+.feedbackGain {
+  font-size: 25px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.recordBanner {
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  animation: bannerIn 400ms var(--ease-pop) both;
+}
+
+@keyframes bannerIn {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.quitButton {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* ---- Game over ---- */
+.finalScore {
+  font-size: clamp(70px, 22vw, 140px);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--accent);
+  text-shadow: 0 0 60px var(--accent-glow);
+}
+
+.finalLabel {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* ---- Enlace a la app original ---- */
+.storeLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-dim);
+  font-size: 13px;
+  text-decoration: none;
+  transition: border-color 160ms linear, color 160ms linear, transform 120ms var(--ease-out);
+}
+
+.storeLink strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.storeLink:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.storeLink:active {
+  transform: scale(0.97);
+}

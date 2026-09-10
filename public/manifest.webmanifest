@@ -1,0 +1,18 @@
+{
+  "name": "MenteRush",
+  "short_name": "MenteRush",
+  "description": "Cálculo mental a contrarreloj: suma, encadena rachas y aguanta tres vidas.",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#06070c",
+  "theme_color": "#06070c",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
