@@ -53,11 +53,16 @@ export function GameScreen({ engine }: { engine: GameEngine }) {
     >
       <header className={styles.hud}>
         <div className={styles.hudBlock}>
-          <span className={styles.hudLabel}>Ronda {state.round}</span>
-          <LivesIndicator lives={state.lives} total={INITIAL_LIVES} />
+          <span className={styles.hudLabel}>
+            {/* En práctica la sesión tiene final conocido; en reto, vidas. */}
+            {state.roundLimit ? `Ronda ${state.round} de ${state.roundLimit}` : `Ronda ${state.round}`}
+          </span>
+          {state.roundLimit === null && (
+            <LivesIndicator lives={state.lives} total={INITIAL_LIVES} />
+          )}
         </div>
 
-        <ComboMeter combo={state.combo} multiplier={multiplier} tier={tier} />
+        <ComboMeter combo={state.combo} multiplier={multiplier} />
 
         <div className={`${styles.hudBlock} ${styles.right}`}>
           <span className={styles.hudLabel}>Puntos</span>
@@ -104,7 +109,7 @@ export function GameScreen({ engine }: { engine: GameEngine }) {
             ) : (
               <>
                 <span className={`${styles.feedbackGain} tabular`}>+{state.lastGain}</span>
-                {state.combo >= 3 && (
+                {multiplier > 1 && (
                   <span className={styles.feedbackDetail}>racha ×{multiplier}</span>
                 )}
               </>

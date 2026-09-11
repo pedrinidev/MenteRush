@@ -6,8 +6,16 @@
 export const SCORING = {
   /** Puntos base por número acertado de la secuencia. */
   POINTS_PER_NUMBER: 10,
-  /** Aciertos consecutivos necesarios para subir medio punto de multiplicador. */
-  COMBO_STEP: 3,
+  /**
+   * Acierto a partir del cual empieza a crecer el multiplicador. Desde ahí sube
+   * medio punto **por cada acierto**: 2 seguidos son ×1.5, 3 son ×2, 4 son ×2.5…
+   */
+  MULTIPLIER_FROM: 2,
+  /**
+   * Aciertos necesarios para subir un escalón de color y sonido. No puede seguir
+   * al multiplicador —solo hay cinco escalones— así que va a su propio ritmo.
+   */
+  COMBO_STEP: 2,
   MULTIPLIER_STEP: 0.5,
   MAX_MULTIPLIER: 5,
   /** Responder al instante vale hasta un 50% extra. */
@@ -20,10 +28,10 @@ export const SCORING = {
  * Multiplicador para un combo dado. El combo es el que queda **después** del
  * acierto, de modo que la recompensa se siente en la misma ronda.
  *
- * combo 0-2 → ×1 · 3-5 → ×1.5 · 6-8 → ×2 … tope ×5.
+ * combo 0-1 → ×1 · 2 → ×1.5 · 3 → ×2 · 4 → ×2.5 … tope ×5 en el noveno acierto.
  */
 export function multiplierFor(combo: number): number {
-  const steps = Math.floor(Math.max(0, combo) / SCORING.COMBO_STEP)
+  const steps = Math.max(0, Math.floor(combo) - (SCORING.MULTIPLIER_FROM - 1))
   return Math.min(1 + steps * SCORING.MULTIPLIER_STEP, SCORING.MAX_MULTIPLIER)
 }
 

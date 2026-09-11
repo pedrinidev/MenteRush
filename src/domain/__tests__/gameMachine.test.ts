@@ -40,7 +40,7 @@ function apply(state: GameState, ...actions: Action[]): GameState {
 
 /** Partida recién arrancada, esperando la primera respuesta. */
 function answeringState(mode: 'SUMA' | 'MIXTO' = 'SUMA', record = 0): GameState {
-  const started = apply(createInitialState(mode, record), { type: 'START', mode, digits: 'ONE', record })
+  const started = apply(createInitialState(mode, record), { type: 'START', mode, digits: 'ONE', play: 'RETO', level: 'MEDIO', record })
   return advanceTo(started, 'answering')
 }
 
@@ -53,7 +53,7 @@ function failRound(state: GameState): GameState {
 
 describe('arranque', () => {
   it('START pasa de idle a la cuenta atrás', () => {
-    const state = apply(createInitialState('SUMA'), { type: 'START', mode: 'SUMA', digits: 'ONE', record: 0 })
+    const state = apply(createInitialState('SUMA'), { type: 'START', mode: 'SUMA', digits: 'ONE', play: 'RETO', level: 'MEDIO', record: 0 })
     expect(state.status).toBe('countdown')
     expect(state.lives).toBe(INITIAL_LIVES)
     expect(state.score).toBe(0)
@@ -61,12 +61,12 @@ describe('arranque', () => {
 
   it('START se ignora si la partida ya está en marcha', () => {
     const playing = answeringState()
-    expect(apply(playing, { type: 'START', mode: 'SUMA', digits: 'ONE', record: 0 })).toBe(playing)
+    expect(apply(playing, { type: 'START', mode: 'SUMA', digits: 'ONE', play: 'RETO', level: 'MEDIO', record: 0 })).toBe(playing)
   })
 
   it('tras la cuenta atrás empieza la ronda 1 con su secuencia generada', () => {
     const state = advanceTo(
-      apply(createInitialState('SUMA'), { type: 'START', mode: 'SUMA', digits: 'ONE', record: 0 }),
+      apply(createInitialState('SUMA'), { type: 'START', mode: 'SUMA', digits: 'ONE', play: 'RETO', level: 'MEDIO', record: 0 }),
       'showing',
     )
     expect(state.round).toBe(1)
@@ -80,7 +80,7 @@ describe('arranque', () => {
 describe('secuencia de números', () => {
   it('da un respiro en negro antes del primer número', () => {
     const showing = advanceTo(
-      apply(createInitialState('SUMA'), { type: 'START', mode: 'SUMA', digits: 'ONE', record: 0 }),
+      apply(createInitialState('SUMA'), { type: 'START', mode: 'SUMA', digits: 'ONE', play: 'RETO', level: 'MEDIO', record: 0 }),
       'showing',
     )
     expect(showing.visibleIndex).toBe(-1)
@@ -90,7 +90,7 @@ describe('secuencia de números', () => {
 
   it('avanza un número por delayMs y se apaga en la pausa final', () => {
     const showing = advanceTo(
-      apply(createInitialState('SUMA'), { type: 'START', mode: 'SUMA', digits: 'ONE', record: 0 }),
+      apply(createInitialState('SUMA'), { type: 'START', mode: 'SUMA', digits: 'ONE', play: 'RETO', level: 'MEDIO', record: 0 }),
       'showing',
     )
     const { delayMs, quantity } = showing.config
@@ -258,7 +258,7 @@ describe('récord', () => {
 describe('robustez', () => {
   it('ignora SUBMIT fuera de la fase de respuesta', () => {
     const showing = advanceTo(
-      apply(createInitialState('SUMA'), { type: 'START', mode: 'SUMA', digits: 'ONE', record: 0 }),
+      apply(createInitialState('SUMA'), { type: 'START', mode: 'SUMA', digits: 'ONE', play: 'RETO', level: 'MEDIO', record: 0 }),
       'showing',
     )
     expect(apply(showing, { type: 'SUBMIT', value: showing.total })).toBe(showing)
@@ -271,7 +271,7 @@ describe('robustez', () => {
   })
 
   it('un tick enorme no se salta fases: arrastra el sobrante', () => {
-    const started = apply(createInitialState('SUMA'), { type: 'START', mode: 'SUMA', digits: 'ONE', record: 0 })
+    const started = apply(createInitialState('SUMA'), { type: 'START', mode: 'SUMA', digits: 'ONE', play: 'RETO', level: 'MEDIO', record: 0 })
     const jumped = reducer(started, { type: 'TICK', deltaMs: TIMING.COUNTDOWN_MS + 500 })
     expect(jumped.status).toBe('showing')
     expect(jumped.elapsedMs).toBe(500)

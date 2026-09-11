@@ -8,6 +8,8 @@ import {
   type DigitMode,
   type GameState,
   type OperationMode,
+  type PlayMode,
+  type SchoolLevel,
 } from '../domain'
 import {
   createSettingsRepository,
@@ -50,6 +52,8 @@ export interface GameEngine {
   submit(value: number): void
   setMode(mode: OperationMode): void
   setDigits(digits: DigitMode): void
+  setPlay(play: PlayMode): void
+  setLevel(level: SchoolLevel): void
   toggleSound(): void
   toggleHaptics(): void
   toggleTheme(): void
@@ -74,7 +78,13 @@ export function useGameEngine(): GameEngine {
     null,
     () => {
       const saved = settingsRepo.load()
-      return createInitialState(saved.mode, statsRepo.load().record, saved.digits)
+      return createInitialState(
+        saved.mode,
+        statsRepo.load().record,
+        saved.digits,
+        saved.play,
+        saved.level,
+      )
     },
   )
 
@@ -181,9 +191,11 @@ export function useGameEngine(): GameEngine {
       type: 'START',
       mode: settings.mode,
       digits: settings.digits,
+      play: settings.play,
+      level: settings.level,
       record: statsRepo.load().record,
     })
-  }, [audio, settings.mode, settings.digits, statsRepo])
+  }, [audio, settings.mode, settings.digits, settings.play, settings.level, statsRepo])
 
   const restart = useCallback(() => {
     audio.unlock()
@@ -207,6 +219,14 @@ export function useGameEngine(): GameEngine {
   )
   const setDigits = useCallback(
     (digits: DigitMode) => persist({ ...settings, digits }),
+    [persist, settings],
+  )
+  const setPlay = useCallback(
+    (play: PlayMode) => persist({ ...settings, play }),
+    [persist, settings],
+  )
+  const setLevel = useCallback(
+    (level: SchoolLevel) => persist({ ...settings, level }),
     [persist, settings],
   )
   const toggleSound = useCallback(
@@ -252,6 +272,8 @@ export function useGameEngine(): GameEngine {
     submit,
     setMode,
     setDigits,
+    setPlay,
+    setLevel,
     toggleSound,
     toggleHaptics,
     toggleTheme,

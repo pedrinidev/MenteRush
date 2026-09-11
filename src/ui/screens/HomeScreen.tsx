@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { GameEngine } from '../../application'
+import { PRACTICE } from '../../domain'
 import { accuracyOf } from '../../data'
 import { ThemeToggle } from '../components/ThemeToggle'
 import styles from './screens.module.css'
@@ -10,8 +11,21 @@ const MENTEPRO_URL =
 
 /** Menú: modo de operación, récords y arranque. */
 export function HomeScreen({ engine }: { engine: GameEngine }) {
-  const { settings, stats, theme, setMode, setDigits, toggleSound, toggleHaptics, toggleTheme, start } =
-    engine
+  const {
+    settings,
+    stats,
+    theme,
+    setMode,
+    setDigits,
+    setPlay,
+    setLevel,
+    toggleSound,
+    toggleHaptics,
+    toggleTheme,
+    start,
+  } = engine
+
+  const practicando = settings.play === 'PRACTICA'
 
   // Empezar sin tocar el ratón, igual que se juega.
   useEffect(() => {
@@ -34,11 +48,57 @@ export function HomeScreen({ engine }: { engine: GameEngine }) {
           Mente<span className={styles.titleAccent}>Rush</span>
         </h1>
         <p className={styles.tagline}>
-          Suma de cabeza los números que aparecen. Encadena aciertos, multiplica
-          la puntuación y aguanta lo que puedas: tienes tres vidas.
+          {practicando
+            ? 'Aparecen números uno a uno y los vas sumando de cabeza. Al final escribes el resultado. Equivocarse no quita nada.'
+            : 'Suma de cabeza los números que aparecen. Encadena aciertos, multiplica la puntuación y aguanta lo que puedas: tienes tres vidas.'}
         </p>
       </div>
 
+      <div>
+        <div className={styles.modeSwitch} role="group" aria-label="Cómo jugar">
+          <button
+            className={`${styles.modeOption} ${practicando ? styles.selected : ''}`}
+            onClick={() => setPlay('PRACTICA')}
+            aria-pressed={practicando}
+          >
+            Práctica
+          </button>
+          <button
+            className={`${styles.modeOption} ${!practicando ? styles.selected : ''}`}
+            onClick={() => setPlay('RETO')}
+            aria-pressed={!practicando}
+          >
+            Reto
+          </button>
+        </div>
+        <p className={styles.modeHint}>
+          {practicando
+            ? 'Para primaria: 10 rondas, sin vidas y sin prisa.'
+            : 'Tres vidas y a aguantar lo que puedas.'}
+        </p>
+      </div>
+
+      {practicando ? (
+        <div>
+          <div className={styles.modeSwitch} role="group" aria-label="Tramo escolar">
+            {(['INICIAL', 'MEDIO', 'AVANZADO'] as const).map((nivel) => (
+              <button
+                key={nivel}
+                className={`${styles.modeOption} ${settings.level === nivel ? styles.selected : ''}`}
+                onClick={() => setLevel(nivel)}
+                aria-pressed={settings.level === nivel}
+              >
+                {PRACTICE[nivel].grades}
+              </button>
+            ))}
+          </div>
+          <p className={styles.modeHint}>
+            {PRACTICE[settings.level].quantity} números del 1 al {PRACTICE[settings.level].max},{' '}
+            {(PRACTICE[settings.level].delayMs / 1000).toFixed(1)} s cada uno.
+          </p>
+        </div>
+      ) : (
+        <>
       <div>
         <div className={styles.modeSwitch} role="group" aria-label="Modo de operación">
           <button
@@ -86,6 +146,8 @@ export function HomeScreen({ engine }: { engine: GameEngine }) {
             : 'Empieza hasta 20 y va creciendo hasta 99.'}
         </p>
       </div>
+        </>
+      )}
 
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>

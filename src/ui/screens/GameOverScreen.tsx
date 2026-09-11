@@ -9,6 +9,7 @@ import styles from './screens.module.css'
  */
 export function GameOverScreen({ engine }: { engine: GameEngine }) {
   const { state, stats, theme, restart, home, toggleTheme } = engine
+  const practicando = state.play === 'PRACTICA'
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -29,9 +30,17 @@ export function GameOverScreen({ engine }: { engine: GameEngine }) {
       <ThemeToggle theme={theme} onToggle={toggleTheme} />
 
       <div>
-        <span className={styles.finalLabel}>Puntuación</span>
-        <div className={`${styles.finalScore} tabular`}>{state.score}</div>
-        {state.isNewRecord ? (
+        <span className={styles.finalLabel}>{practicando ? 'Aciertos' : 'Puntuación'}</span>
+        <div className={`${styles.finalScore} tabular`}>
+          {practicando ? `${state.correctAnswers}/${state.totalAnswers}` : state.score}
+        </div>
+        {practicando ? (
+          <span className={styles.finalLabel}>
+            {state.correctAnswers === state.totalAnswers
+              ? '¡Sesión perfecta!'
+              : '¡Buen trabajo! Prueba otra vez.'}
+          </span>
+        ) : state.isNewRecord ? (
           <span className={styles.recordBanner}>¡Nuevo récord!</span>
         ) : (
           <span className={styles.finalLabel}>Récord: {stats.record}</span>
@@ -40,8 +49,11 @@ export function GameOverScreen({ engine }: { engine: GameEngine }) {
 
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
-          <span className={`${styles.statValue} tabular`}>{state.roundsCleared}</span>
-          <span className={styles.statLabel}>Rondas</span>
+          {/* En práctica, "rondas superadas" repetiría el 8/10 del titular. */}
+          <span className={`${styles.statValue} tabular`}>
+            {practicando ? state.totalAnswers - state.correctAnswers : state.roundsCleared}
+          </span>
+          <span className={styles.statLabel}>{practicando ? 'Fallos' : 'Rondas'}</span>
         </div>
         <div className={styles.statCard}>
           <span className={`${styles.statValue} tabular`}>{state.bestCombo}</span>
@@ -52,13 +64,17 @@ export function GameOverScreen({ engine }: { engine: GameEngine }) {
           <span className={styles.statLabel}>Precisión</span>
         </div>
         <div className={styles.statCard}>
-          <span className={`${styles.statValue} tabular`}>{state.round}</span>
-          <span className={styles.statLabel}>Última ronda</span>
+          {/* En práctica, "rondas jugadas" siempre sería 10: los puntos, que
+              recogen las rachas encadenadas, dicen bastante más. */}
+          <span className={`${styles.statValue} tabular`}>
+            {practicando ? state.score : state.round}
+          </span>
+          <span className={styles.statLabel}>{practicando ? 'Puntos' : 'Última ronda'}</span>
         </div>
       </div>
 
       <button className={styles.primaryButton} onClick={restart}>
-        OTRA VEZ
+        {practicando ? 'OTRA SESIÓN' : 'OTRA VEZ'}
       </button>
       <button className={styles.secondaryButton} onClick={home}>
         Inicio

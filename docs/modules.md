@@ -15,8 +15,9 @@ src/
 
 | Archivo | Responsabilidad |
 |---|---|
-| `types.ts` | `OperationMode`, `DigitMode`, `GameStatus`, `AnswerOutcome`, `ValueRange`, `RoundConfig`, `GameState`, `Action`. |
+| `types.ts` | `OperationMode`, `DigitMode`, `PlayMode`, `SchoolLevel`, `GameStatus`, `AnswerOutcome`, `ValueRange`, `RoundConfig`, `GameState`, `Action`. |
 | `random.ts` | `RandomSource` inyectable y `createSeededRandom` (mulberry32). Hace deterministas los tests y deja la puerta abierta a sembrar por fecha. |
+| `difficulty.ts` (práctica) | `PRACTICE` y `configForPractice(level)`: la tabla del modo escolar, sin aceleración ni negativos. |
 | `difficulty.ts` | Curva continua: `configForRound(r, mode, digits) → RoundConfig`, con la velocidad decayendo exponencialmente hacia su mínimo. Única fuente de verdad del balance, en la constante `DIFFICULTY`. Sustituye a `GameConfig.kt`. |
 | `numberGenerator.ts` | `generateRound(config, random)`: sin 0, sin repetir el anterior, primer número dentro de `firstRange` y suma parcial nunca negativa (por eso el total tampoco lo es). |
 | `round.ts` | `GameRound { numbers, total }` y `createRound`. |
@@ -67,7 +68,7 @@ dato y cae a un valor por defecto si está corrupto.
 | `AnswerDisplay.tsx` | Lo tecleado hasta ahora, con cursor parpadeante. |
 | `Keypad.tsx` | Teclado numérico grande (móvil) y espejo del teclado físico. |
 | `TimerBar.tsx` | Barra de tiempo de respuesta; late en rojo bajo 1500 ms. |
-| `ComboMeter.tsx` | Combo, multiplicador y tier actual (también en texto). |
+| `ComboMeter.tsx` | Racha y, solo en Reto, el multiplicador. |
 | `LivesIndicator.tsx` | Las 3 vidas como corazones (♥ lleno / ♡ hueco), con la animación de rotura al perder una. |
 | `ScoreCounter.tsx` | Puntuación que cuenta hacia arriba en vez de saltar. |
 
@@ -78,7 +79,7 @@ un mismo sistema visual y repartirlas en diez ficheros solo añadía saltos.
 ### `effects/`
 | Archivo | Responsabilidad |
 |---|---|
-| `ParticleCanvas.tsx` | Partículas en canvas 2D; el bucle se detiene por completo cuando no queda ninguna viva. Tolera que falten `canvas` o `matchMedia`. |
+| `ParticleCanvas.tsx` | Estrellas de colores girando, en canvas 2D; el bucle se detiene por completo cuando no queda ninguna viva. Tolera que falten `canvas` o `matchMedia`. |
 | `ScreenFlash.tsx` | Flash del color del tier al acertar, rojo al fallar, y `ComboVignette` para los tiers altos. |
 | `effects.module.css` | Shake, cámara lenta (`slowmo`) y viñeta. El shake se anula con `prefers-reduced-motion`. |
 
@@ -121,10 +122,10 @@ con persistencia, y el modo recordado entre sesiones.
 
 | Capa | Estado |
 |---|---|
-| `domain/` | ✅ Completa · 65 tests |
+| `domain/` | ✅ Completa · 79 tests |
 | `data/` | ✅ Completa · 12 tests |
 | `application/` | ✅ Completa |
 | `ui/` | ✅ Completa · 12 tests de integración |
 | PWA | ✅ Manifest + service worker (solo en producción) |
 
-**89 tests en verde**, `tsc --noEmit` limpio y build de producción en 54 kB gzip.
+**103 tests en verde**, `tsc --noEmit` limpio y build de producción en 54 kB gzip.

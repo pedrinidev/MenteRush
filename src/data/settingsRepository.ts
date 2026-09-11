@@ -1,4 +1,4 @@
-import type { DigitMode, OperationMode } from '../domain'
+import type { DigitMode, OperationMode, PlayMode, SchoolLevel } from '../domain'
 import { STORAGE_KEYS, type StorageLike } from './storageKeys'
 
 /**
@@ -11,6 +11,8 @@ export type ThemePreference = 'auto' | 'light' | 'dark'
 export interface Settings {
   readonly mode: OperationMode
   readonly digits: DigitMode
+  readonly play: PlayMode
+  readonly level: SchoolLevel
   readonly sound: boolean
   readonly haptics: boolean
   readonly theme: ThemePreference
@@ -19,6 +21,8 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   mode: 'SUMA',
   digits: 'ONE',
+  play: 'RETO',
+  level: 'MEDIO',
   sound: true,
   haptics: true,
   theme: 'auto',
@@ -44,6 +48,9 @@ function parseSettings(raw: string | null): Settings {
       // `OperationMode.fromPreference()` en MentePro.
       mode: data['mode'] === 'MIXTO' ? 'MIXTO' : 'SUMA',
       digits: data['digits'] === 'TWO' ? 'TWO' : 'ONE',
+      play: data['play'] === 'PRACTICA' ? 'PRACTICA' : 'RETO',
+      level:
+        data['level'] === 'INICIAL' || data['level'] === 'AVANZADO' ? data['level'] : 'MEDIO',
       sound: readBoolean(data['sound'], DEFAULT_SETTINGS.sound),
       haptics: readBoolean(data['haptics'], DEFAULT_SETTINGS.haptics),
       // Cualquier valor desconocido vuelve a seguir al sistema.

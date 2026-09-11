@@ -91,21 +91,18 @@ describe('settingsRepository', () => {
 
   it('persiste el modo elegido', () => {
     const storage = fakeStorage()
-    createSettingsRepository(storage).save({
+    const guardado = {
       mode: 'MIXTO',
       digits: 'TWO',
+      play: 'PRACTICA',
+      level: 'INICIAL',
       sound: false,
       haptics: true,
       theme: 'light',
-    })
+    } as const
 
-    expect(createSettingsRepository(storage).load()).toEqual({
-      mode: 'MIXTO',
-      digits: 'TWO',
-      sound: false,
-      haptics: true,
-      theme: 'light',
-    })
+    createSettingsRepository(storage).save(guardado)
+    expect(createSettingsRepository(storage).load()).toEqual(guardado)
   })
 
   it('el tema parte de "auto" y descarta valores desconocidos', () => {
@@ -115,6 +112,20 @@ describe('settingsRepository', () => {
       fakeStorage({ [STORAGE_KEYS.settings]: JSON.stringify({ theme: 'neón' }) }),
     )
     expect(repo.load().theme).toBe('auto')
+  })
+
+  it('el modo de juego parte en Reto y el tramo en Medio', () => {
+    const repo = createSettingsRepository(fakeStorage())
+    expect(repo.load().play).toBe('RETO')
+    expect(repo.load().level).toBe('MEDIO')
+  })
+
+  it('descarta un tramo escolar desconocido', () => {
+    const repo = createSettingsRepository(
+      fakeStorage({ [STORAGE_KEYS.settings]: JSON.stringify({ play: 'X', level: 'UNIVERSIDAD' }) }),
+    )
+    expect(repo.load().play).toBe('RETO')
+    expect(repo.load().level).toBe('MEDIO')
   })
 
   it('cualquier modo desconocido cae en SUMA', () => {

@@ -3,9 +3,16 @@
  * formato sin corromper los datos de quien ya jugaba.
  */
 export const STORAGE_KEYS = {
-  stats: 'menterush.v1.stats',
+  /** v2: las estadísticas pasaron a guardarse por modo de juego. */
+  stats: 'menterush.v2.stats',
   settings: 'menterush.v1.settings',
 } as const
+
+/**
+ * Clave anterior, con un único bloque de estadísticas. Se lee una vez para no
+ * perder el récord de quien ya jugaba: aquellas partidas eran todas de Reto.
+ */
+export const LEGACY_STATS_KEY = 'menterush.v1.stats'
 
 /**
  * Subconjunto de `Storage` que realmente usamos. Permite inyectar un doble en

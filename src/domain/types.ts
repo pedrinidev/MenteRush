@@ -15,6 +15,22 @@ export type OperationMode = 'SUMA' | 'MIXTO'
  */
 export type DigitMode = 'ONE' | 'TWO'
 
+/**
+ * Cómo se juega.
+ * - `RETO`: el juego original. Tres vidas, game over, combos y aceleración.
+ * - `PRACTICA`: pensado para primaria. Sesión de rondas fijas, sin vidas ni
+ *   game over, a velocidad constante. Fallar no castiga: enseña el resultado
+ *   y se sigue.
+ */
+export type PlayMode = 'RETO' | 'PRACTICA'
+
+/**
+ * Tramo escolar del modo práctica. La progresión no ocurre dentro de la sesión
+ * sino cambiando de tramo: para un niño es más útil un ritmo estable que una
+ * cuesta.
+ */
+export type SchoolLevel = 'INICIAL' | 'MEDIO' | 'AVANZADO'
+
 /** Rango cerrado de valores permitidos. */
 export interface ValueRange {
   readonly min: number
@@ -62,7 +78,14 @@ export interface RoundConfig {
 /** Acciones que hacen avanzar la máquina de estados. */
 export type Action =
   /** Arranca una partida desde el menú. `record` es la mejor puntuación previa. */
-  | { type: 'START'; mode: OperationMode; digits: DigitMode; record: number }
+  | {
+      type: 'START'
+      mode: OperationMode
+      digits: DigitMode
+      play: PlayMode
+      level: SchoolLevel
+      record: number
+    }
   /** Avance del tiempo. Único canal por el que el dominio conoce el reloj. */
   | { type: 'TICK'; deltaMs: number }
   /** El jugador confirma una respuesta. */
@@ -77,6 +100,10 @@ export interface GameState {
   readonly status: GameStatus
   readonly mode: OperationMode
   readonly digits: DigitMode
+  readonly play: PlayMode
+  readonly level: SchoolLevel
+  /** Rondas que dura la sesión de práctica, o `null` si se juega hasta perder. */
+  readonly roundLimit: number | null
 
   /** Ronda actual, 1-based. */
   readonly round: number

@@ -1,5 +1,38 @@
 # Diseño de juego — MenteRush
 
+## 0. Dos formas de jugar
+
+| | **Reto** | **Práctica** |
+|---|---|---|
+| Público | adolescentes y adultos | primaria |
+| Vidas | 3, y game over | ninguna: fallar no castiga |
+| Duración | hasta perder | sesión de 10 rondas |
+| Velocidad | 1400 ms, acelerando | constante según el tramo |
+| Números | 1..9 o dos cifras, con negativos opcionales | solo positivos de una cifra |
+
+**Por qué existe el modo práctica.** El modo Reto no mide cálculo: mide memoria
+de trabajo bajo presión. Hay que sostener un total mientras llegan números
+nuevos, y esa capacidad todavía se está formando en primaria. Un niño puede saber
+de sobra que 7 + 5 = 12 y aun así fracasar aquí — quedando con la idea de que se
+le dan mal las matemáticas, cuando lo que falla es otra cosa.
+
+Además, los números negativos no se ven en primaria: `-4` en pantalla es notación
+de número negativo, no una resta.
+
+| Tramo | Grados | Números | Tiempo por número | Rango |
+|---|---|---|---|---|
+| Inicial | 1º y 2º | 3 | 3000 ms | 1..5 |
+| Medio | 3º y 4º | 4 | 2500 ms | 1..9 |
+| Avanzado | 5º y 6º | 5 | 2000 ms | 1..9 |
+
+La velocidad **no sube dentro de la sesión**: un ritmo estable deja al niño
+encontrar su método. La progresión viene de cambiar de tramo, no de aguantar
+una cuesta.
+
+> Esto es razonamiento sobre cómo funciona el juego, no criterio pedagógico
+> acreditado. Antes de usarlo en un aula conviene sentar a niños de distintos
+> grados a jugarlo y ver dónde se atascan.
+
 ## 1. El bucle
 
 Una partida es una sucesión de rondas. En cada ronda:
@@ -114,28 +147,47 @@ MentePro, se eligen antes de empezar y se persisten.
 puntos = 10 × cantidadDeNúmeros × multiplicador × bonusVelocidad
 ```
 
-- **multiplicador** = `1 + floor(combo / 3) × 0.5`, tope **×5**.
+- **multiplicador** = `1 + (combo - 1) × 0.5` desde el segundo acierto, tope **×5**
+  (que se alcanza al noveno seguido): 2 → ×1.5, 3 → ×2, 4 → ×2.5, 5 → ×3…
 - **bonusVelocidad** = `1 + (tiempoRestante / tiempoTotal) × 0.5` — responder
   rápido vale hasta un 50% más.
 
 El multiplicador es la pieza central: perder un combo de 15 duele de verdad, y
 ese dolor es exactamente lo que hace pulsar "otra vez".
 
-## 4. Tiers de combo
+## 4. Escalones de racha
 
-Cada 3 aciertos consecutivos se sube de tier. El tier cambia **todo** a la vez —
-color, sonido, intensidad — para que la subida se sienta física:
+Cada **2 aciertos** consecutivos se sube un escalón, y el escalón cambia **todo** a
+la vez —color, sonido, intensidad— para que la subida se sienta física.
 
-| Tier | Combo | Acento | Sonido | Efectos |
-|---|---|---|---|---|
-| 0 | 0-2 | Azul frío | Tono base | Ninguno |
-| 1 | 3-5 | Verde | +1 semitono | Pulso suave del fondo |
-| 2 | 6-8 | Ámbar | +2 semitonos | Partículas al acertar |
-| 3 | 9-11 | Magenta | +3 semitonos | Shake corto + estela en los números |
-| 4 | 12+ | Rojo incandescente | +4 semitonos | Viñeta latiendo, partículas densas |
+El escalón va a su propio ritmo porque **no puede seguir al multiplicador**: este
+sube en cada acierto y escalones de color solo hay cinco. Así que el color cambia
+cada dos aciertos y el `×` en todos.
 
-El tier se comunica también con texto y con la forma del marcador, nunca solo
-con el color.
+En pantalla **el escalón no se muestra como tal**: el marcador dice `9 seguidos
+×2.5` y nada más. El multiplicador ya cambia justo cuando cambia el escalón, así
+que cualquier otro indicador (un número, estrellas, la palabra "tier") sería el
+mismo dato repetido —y encima uno que no dice nada por sí solo, mientras que
+"×2.5" informa de cuánto vale cada acierto.
+
+En **Práctica el multiplicador se oculta** y queda solo `9 seguidos`: allí no hay
+puntuación que optimizar y sería ruido.
+
+Internamente el escalón se sigue llamando *tier* (`tierFor`), pero eso no sale
+nunca a la interfaz.
+
+| Escalón | Combo | × | Acento | Sonido | Efectos |
+|---|---|---|---|---|---|
+| 0 | 0-1 | ×1 | Azul frío | Tono base | Ninguno |
+| 1 | 2-3 | ×1.5 y ×2 | Verde | +1 semitono | Pulso suave del fondo |
+| 2 | 4-5 | ×2.5 y ×3 | Ámbar | +2 semitonos | Más estrellas al acertar |
+| 3 | 6-7 | ×3.5 y ×4 | Magenta | +3 semitonos | Shake corto + estela en los números |
+| 4 | 8+ | ×4.5 hasta ×5 | Rojo incandescente | +4 semitonos | Viñeta latiendo, lluvia densa de estrellas |
+
+Medido en el juego, una racha limpia de nueve aciertos: +45, +67, +90, +150,
++180, +210, +300, +337, +374. El último vale **ocho veces** el primero.
+
+El escalón se comunica también con el multiplicador, nunca solo con el color.
 
 ## 5. Game feel
 
@@ -143,8 +195,11 @@ Lo que separa "un ejercicio de aritmética" de un juego que engancha:
 
 - **Aparición del número**: entra con escala 1.25 → 1.0 y un golpe de peso
   (cubic-bezier agresivo). El número es enorme: ocupa el ancho de la pantalla.
-- **Acierto**: flash del color del tier, partículas desde el centro, el
-  marcador cuenta hacia arriba en vez de saltar, tono ascendente.
+- **Acierto**: es una celebración, no un aviso. El ✓ entra dando un salto con un
+  giro y se asienta, salen **estrellas de colores girando** desde el centro
+  (paleta de fiesta mezclada con el color de la racha, para que la tiña sin
+  monopolizarla), flash de pantalla, el marcador cuenta hacia arriba en vez de
+  saltar y el tono asciende.
 - **Fallo**: cámara lenta breve (~250 ms), la pantalla se desatura, tono grave,
   la vida perdida se rompe en el HUD, vibración en móvil.
 - **Últimos 1500 ms para responder**: el borde de la pantalla late en rojo y el

@@ -105,7 +105,7 @@ es decir, un bucle con fracaso posible. Sin fracaso no hay "una partida más".
 ```bash
 npm install
 npm run dev        # servidor de desarrollo
-npm test           # 89 tests (dominio, datos e interfaz)
+npm test           # 103 tests (dominio, datos e interfaz)
 npm run typecheck  # tsc --noEmit
 npm run build      # bundle de producción en dist/
 ```

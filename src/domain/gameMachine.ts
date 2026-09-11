@@ -1,8 +1,16 @@
-import { configForRound } from './difficulty'
+import { PRACTICE_ROUNDS, configForPractice, configForRound } from './difficulty'
 import { generateRound } from './numberGenerator'
 import { pointsFor } from './scoring'
 import type { RandomSource } from './random'
-import type { Action, AnswerOutcome, DigitMode, GameState, OperationMode } from './types'
+import type {
+  Action,
+  AnswerOutcome,
+  DigitMode,
+  GameState,
+  OperationMode,
+  PlayMode,
+  SchoolLevel,
+} from './types'
 
 /**
  * Máquina de estados de la partida, como reducer puro.
@@ -44,13 +52,18 @@ export function createInitialState(
   mode: OperationMode,
   record = 0,
   digits: DigitMode = 'ONE',
+  play: PlayMode = 'RETO',
+  level: SchoolLevel = 'MEDIO',
 ): GameState {
   return {
     status: 'idle',
     mode,
     digits,
+    play,
+    level,
+    roundLimit: play === 'PRACTICA' ? PRACTICE_ROUNDS : null,
     round: 0,
-    config: configForRound(1, mode, digits),
+    config: configFor(1, mode, digits, play, level),
     sequence: [],
     total: 0,
     visibleIndex: -1,
@@ -72,9 +85,20 @@ export function createInitialState(
 }
 
 /** Arranca la cuenta atrás conservando modo y récord. */
+/** Elige la tabla de dificultad según cómo se esté jugando. */
+function configFor(
+  round: number,
+  mode: OperationMode,
+  digits: DigitMode,
+  play: PlayMode,
+  level: SchoolLevel,
+) {
+  return play === 'PRACTICA' ? configForPractice(level) : configForRound(round, mode, digits)
+}
+
 function startCountdown(state: GameState): GameState {
   return {
-    ...createInitialState(state.mode, state.record, state.digits),
+    ...createInitialState(state.mode, state.record, state.digits, state.play, state.level),
     status: 'countdown',
     phaseDurationMs: TIMING.COUNTDOWN_MS,
   }
@@ -82,7 +106,7 @@ function startCountdown(state: GameState): GameState {
 
 /** Prepara y entra en la ronda indicada. `carryMs` es el sobrante del tick. */
 function startRound(state: GameState, round: number, random: RandomSource, carryMs: number): GameState {
-  const config = configForRound(round, state.mode, state.digits)
+  const config = configFor(round, state.mode, state.digits, state.play, state.level)
   const generated = generateRound(config, random)
 
   return {
@@ -133,7 +157,8 @@ function resolveAnswer(
     visibleIndex: -1,
     elapsedMs: 0,
     phaseDurationMs: correct ? TIMING.FEEDBACK_CORRECT_MS : TIMING.FEEDBACK_WRONG_MS,
-    lives: correct ? state.lives : state.lives - 1,
+    // En práctica no se pierden vidas: fallar enseña el resultado y se sigue.
+    lives: correct || state.play === 'PRACTICA' ? state.lives : state.lives - 1,
     score,
     combo,
     bestCombo: Math.max(state.bestCombo, combo),
@@ -195,11 +220,14 @@ function tick(state: GameState, deltaMs: number, random: RandomSource): GameStat
         ? resolveAnswer(state, 'timeout', null, 0)
         : { ...state, elapsedMs: elapsed }
 
-    case 'feedback':
+    case 'feedback': {
       if (overflow < 0) return { ...state, elapsedMs: elapsed }
-      return state.lives > 0
+      // La práctica termina al completar la sesión; el reto, al quedarse sin vidas.
+      const sessionOver = state.roundLimit !== null && state.round >= state.roundLimit
+      return state.lives > 0 && !sessionOver
         ? startRound(state, state.round + 1, random, overflow)
         : toGameOver(state)
+    }
 
     // `idle` y `gameOver` no consumen tiempo.
     default:
@@ -220,6 +248,8 @@ export function createGameReducer(random: RandomSource = Math.random) {
           ...state,
           mode: action.mode,
           digits: action.digits,
+          play: action.play,
+          level: action.level,
           record: action.record,
         })
 
@@ -230,7 +260,13 @@ export function createGameReducer(random: RandomSource = Math.random) {
         return startCountdown({ ...state, record: Math.max(state.record, state.score) })
 
       case 'HOME':
-        return createInitialState(state.mode, Math.max(state.record, state.score), state.digits)
+        return createInitialState(
+          state.mode,
+          Math.max(state.record, state.score),
+          state.digits,
+          state.play,
+          state.level,
+        )
 
       case 'TICK':
         return tick(state, action.deltaMs, random)

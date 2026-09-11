@@ -9,10 +9,19 @@ interface Particle {
   life: number
   maxLife: number
   size: number
+  rotation: number
+  spin: number
+  color: string
 }
 
-const GRAVITY = 0.06
-const FRICTION = 0.985
+const GRAVITY = 0.05
+const FRICTION = 0.988
+
+/**
+ * Paleta de fiesta. Se mezcla con el acento de la racha para que la celebración
+ * sea de colores y no un chorro monocromo del color del tier.
+ */
+const CONFETTI = ['#ffd93d', '#ff6b9d', '#4ecdc4', '#a78bfa', '#ffa62b', '#6bcb77', '#ffffff']
 
 /** `matchMedia` no existe en algunos WebViews ni en entornos de test. */
 function prefersReducedMotion(): boolean {
@@ -20,14 +29,38 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
+/** Dibuja una estrella de cinco puntas centrada en (x, y). */
+function drawStar(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  radius: number,
+  rotation: number,
+): void {
+  const spikes = 5
+  const inner = radius * 0.45
+
+  ctx.beginPath()
+  for (let i = 0; i < spikes * 2; i++) {
+    const r = i % 2 === 0 ? radius : inner
+    const angle = (i * Math.PI) / spikes + rotation
+    const px = x + Math.cos(angle) * r
+    const py = y + Math.sin(angle) * r
+    if (i === 0) ctx.moveTo(px, py)
+    else ctx.lineTo(px, py)
+  }
+  ctx.closePath()
+  ctx.fill()
+}
+
 /**
- * Partículas en canvas 2D.
+ * Estrellas de colores que salen disparadas al acertar.
  *
- * El bucle de render **solo corre mientras hay partículas vivas**: en reposo el
+ * El bucle de render **solo corre mientras hay estrellas vivas**: en reposo el
  * componente no consume un solo frame, que es lo que permite mantener 60 fps
  * durante la secuencia de números.
  *
- * Cada cambio de `burstKey` dispara una emisión.
+ * Cada cambio de `burstKey` dispara una celebración.
  */
 export function ParticleCanvas({
   burstKey,
@@ -72,20 +105,26 @@ export function ParticleCanvas({
 
     const originX = window.innerWidth / 2
     const originY = window.innerHeight / 2
-    const count = Math.round(26 + intensity * 16)
+    const count = Math.round(46 + intensity * 20)
+    // El acento entra en el sorteo, así que la racha tiñe la celebración sin
+    // apoderarse de ella.
+    const palette = [...CONFETTI, colorRef.current, colorRef.current]
 
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2
-      const speed = 2.2 + Math.random() * (3.4 + intensity * 1.2)
-      const maxLife = 42 + Math.random() * 34
+      const speed = 2.6 + Math.random() * (4 + intensity * 1.4)
+      const maxLife = 52 + Math.random() * 42
       particlesRef.current.push({
         x: originX,
         y: originY,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 1.2,
+        vy: Math.sin(angle) * speed - 1.6,
         life: maxLife,
         maxLife,
-        size: 2.5 + Math.random() * 3.5,
+        size: 5 + Math.random() * 7,
+        rotation: Math.random() * Math.PI * 2,
+        spin: (Math.random() - 0.5) * 0.28,
+        color: palette[Math.floor(Math.random() * palette.length)] as string,
       })
     }
 
@@ -101,14 +140,14 @@ export function ParticleCanvas({
         p.vy = p.vy * FRICTION + GRAVITY
         p.x += p.vx
         p.y += p.vy
+        p.rotation += p.spin
         p.life -= 1
 
         if (p.life > 0) {
-          ctx.globalAlpha = Math.max(p.life / p.maxLife, 0)
-          ctx.fillStyle = colorRef.current
-          ctx.beginPath()
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-          ctx.fill()
+          // Se apagan en el último tercio de vida, no de golpe.
+          ctx.globalAlpha = Math.min(1, (p.life / p.maxLife) * 2.2)
+          ctx.fillStyle = p.color
+          drawStar(ctx, p.x, p.y, p.size, p.rotation)
           alive.push(p)
         }
       }
@@ -118,7 +157,7 @@ export function ParticleCanvas({
       if (alive.length > 0) {
         frameRef.current = requestAnimationFrame(render)
       } else {
-        // Sin partículas vivas se detiene el bucle por completo.
+        // Sin estrellas vivas se detiene el bucle por completo.
         runningRef.current = false
         ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
       }

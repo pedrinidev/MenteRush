@@ -1,4 +1,4 @@
-import type { DigitMode, OperationMode, RoundConfig, ValueRange } from './types'
+import type { DigitMode, OperationMode, RoundConfig, SchoolLevel, ValueRange } from './types'
 
 /**
  * Curva de dificultad continua. Es la única fuente de verdad del balance del
@@ -150,5 +150,47 @@ export function configForRound(
     positive: ranges.positive,
     negative: mode === 'MIXTO' ? ranges.negative : null,
     first: ranges.first,
+  }
+}
+
+/**
+ * Configuración del modo práctica, pensado para primaria.
+ *
+ * Tres diferencias de fondo con el modo Reto:
+ * - **Velocidad constante**: no acelera dentro de la sesión. Un ritmo estable
+ *   deja al niño encontrar su método; la progresión viene de cambiar de tramo.
+ * - **Mucho más tiempo por número**: el cuello de botella a esa edad no es la
+ *   suma, es sostener el total en la memoria de trabajo mientras llega el
+ *   siguiente número.
+ * - **Sin negativos ni dos cifras**: los números negativos no se ven en primaria,
+ *   y `-4` en pantalla es notación de número negativo, no una resta.
+ */
+export const PRACTICE: Record<
+  SchoolLevel,
+  { quantity: number; delayMs: number; answerMs: number; max: number; grades: string }
+> = {
+  INICIAL: { quantity: 3, delayMs: 3000, answerMs: 8000, max: 5, grades: '1º y 2º' },
+  MEDIO: { quantity: 4, delayMs: 2500, answerMs: 7000, max: 9, grades: '3º y 4º' },
+  AVANZADO: { quantity: 5, delayMs: 2000, answerMs: 6000, max: 9, grades: '5º y 6º' },
+}
+
+/** Rondas que dura una sesión de práctica antes del resumen. */
+export const PRACTICE_ROUNDS = 10
+
+/**
+ * Configuración de una ronda de práctica. No depende del número de ronda: todas
+ * son iguales dentro de la sesión.
+ */
+export function configForPractice(level: SchoolLevel): RoundConfig {
+  const preset = PRACTICE[level]
+  const range: ValueRange = { min: 1, max: preset.max }
+
+  return {
+    quantity: preset.quantity,
+    delayMs: preset.delayMs,
+    answerMs: preset.answerMs,
+    positive: range,
+    negative: null,
+    first: range,
   }
 }
