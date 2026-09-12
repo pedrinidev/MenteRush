@@ -2,6 +2,11 @@
 
 ## 0. Dos formas de jugar
 
+Cada modo lleva **sus propias estadísticas** —récord, mejor racha, partidas y
+precisión—: en Práctica los números son más fáciles y hay más tiempo, así que un
+récord de ahí no es comparable con uno de Reto.
+
+
 | | **Reto** | **Práctica** |
 |---|---|---|
 | Público | adolescentes y adultos | primaria |
@@ -170,8 +175,10 @@ que cualquier otro indicador (un número, estrellas, la palabra "tier") sería e
 mismo dato repetido —y encima uno que no dice nada por sí solo, mientras que
 "×2.5" informa de cuánto vale cada acierto.
 
-En **Práctica el multiplicador se oculta** y queda solo `9 seguidos`: allí no hay
-puntuación que optimizar y sería ruido.
+El multiplicador se muestra **también en Práctica**: la racha ya se rompe al fallar
+y ya está a la vista, así que el `×` no añade castigo, solo hace visible lo que se
+está ganando. El resumen de la sesión incluye los puntos para que ese número lleve
+a alguna parte.
 
 Internamente el escalón se sigue llamando *tier* (`tierFor`), pero eso no sale
 nunca a la interfaz.

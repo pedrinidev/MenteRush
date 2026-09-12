@@ -42,9 +42,9 @@ Ninguno de estos archivos importa React, `window`, `localStorage` ni `Date`.
 
 | Archivo | Responsabilidad |
 |---|---|
-| `statsRepository.ts` | Récord, mejor combo, partidas jugadas, precisión. Interfaz `StatsRepository` + implementación `LocalStorageStatsRepository`. |
+| `statsRepository.ts` | Récord, mejor combo, partidas y precisión **separados por modo de juego** (`StatsByMode`): mezclar los récords de Práctica con los de Reto haría que ninguno significara nada. Migra el bloque único de la v1 a las de Reto. |
 | `settingsRepository.ts` | Modo (Suma/Mixto), sonido, vibración y tema. Equivale a `SharedPreferences("operacion")` de MentePro. |
-| `storageKeys.ts` | Claves versionadas (`menterush.v1.stats`) para poder migrar sin romper datos. |
+| `storageKeys.ts` | Claves versionadas (`menterush.v2.stats`) para poder migrar sin romper datos; conserva la clave v1 para el rescate. |
 
 Ambos repositorios están detrás de una interfaz: cambiarlos por una API remota
 más adelante no toca ni el dominio ni la UI. Toda lectura valida la forma del
@@ -68,7 +68,7 @@ dato y cae a un valor por defecto si está corrupto.
 | `AnswerDisplay.tsx` | Lo tecleado hasta ahora, con cursor parpadeante. |
 | `Keypad.tsx` | Teclado numérico grande (móvil) y espejo del teclado físico. |
 | `TimerBar.tsx` | Barra de tiempo de respuesta; late en rojo bajo 1500 ms. |
-| `ComboMeter.tsx` | Racha y, solo en Reto, el multiplicador. |
+| `ComboMeter.tsx` | Racha y multiplicador, en los dos modos. |
 | `LivesIndicator.tsx` | Las 3 vidas como corazones (♥ lleno / ♡ hueco), con la animación de rotura al perder una. |
 | `ScoreCounter.tsx` | Puntuación que cuenta hacia arriba en vez de saltar. |
 
@@ -79,7 +79,7 @@ un mismo sistema visual y repartirlas en diez ficheros solo añadía saltos.
 ### `effects/`
 | Archivo | Responsabilidad |
 |---|---|
-| `ParticleCanvas.tsx` | Estrellas de colores girando, en canvas 2D; el bucle se detiene por completo cuando no queda ninguna viva. Tolera que falten `canvas` o `matchMedia`. |
+| `ParticleCanvas.tsx` | Estrellas de colores girando, en canvas 2D; el bucle se detiene por completo cuando no queda ninguna viva. El lienzo está acotado a ~2.5 M píxeles (~10 MB) para no reservar 56 MB en monitores grandes. Tolera que falten `canvas` o `matchMedia`. |
 | `ScreenFlash.tsx` | Flash del color del tier al acertar, rojo al fallar, y `ComboVignette` para los tiers altos. |
 | `effects.module.css` | Shake, cámara lenta (`slowmo`) y viñeta. El shake se anula con `prefers-reduced-motion`. |
 
@@ -123,9 +123,9 @@ con persistencia, y el modo recordado entre sesiones.
 | Capa | Estado |
 |---|---|
 | `domain/` | ✅ Completa · 79 tests |
-| `data/` | ✅ Completa · 12 tests |
+| `data/` | ✅ Completa · 15 tests |
 | `application/` | ✅ Completa |
 | `ui/` | ✅ Completa · 12 tests de integración |
 | PWA | ✅ Manifest + service worker (solo en producción) |
 
-**103 tests en verde**, `tsc --noEmit` limpio y build de producción en 54 kB gzip.
+**105 tests en verde**, `tsc --noEmit` limpio y build de producción en 54 kB gzip.

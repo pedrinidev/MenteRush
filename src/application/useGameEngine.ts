@@ -17,6 +17,7 @@ import {
   getSafeStorage,
   type Settings,
   type Stats,
+  type StatsByMode,
 } from '../data'
 import { useAudio } from './useAudio'
 import { useCountdown } from './useCountdown'
@@ -70,7 +71,9 @@ export function useGameEngine(): GameEngine {
   const settingsRepo = useMemo(() => createSettingsRepository(storage), [storage])
 
   const [settings, setSettings] = useState<Settings>(() => settingsRepo.load())
-  const [stats, setStats] = useState<Stats>(() => statsRepo.load())
+  // Las estadísticas van por modo: se guardan las dos y se muestra la del modo activo.
+  const [statsByMode, setStatsByMode] = useState<StatsByMode>(() => statsRepo.loadAll())
+  const stats: Stats = statsByMode[settings.play]
 
   const reducer = useMemo(() => createGameReducer(), [])
   const [state, dispatch] = useReducer(
@@ -80,7 +83,7 @@ export function useGameEngine(): GameEngine {
       const saved = settingsRepo.load()
       return createInitialState(
         saved.mode,
-        statsRepo.load().record,
+        statsRepo.load(saved.play).record,
         saved.digits,
         saved.play,
         saved.level,
@@ -161,18 +164,19 @@ export function useGameEngine(): GameEngine {
     if (savedGameRef.current) return
     savedGameRef.current = true
 
-    setStats(
-      statsRepo.registerGame({
-        score: state.score,
-        bestCombo: state.bestCombo,
-        correctAnswers: state.correctAnswers,
-        totalAnswers: state.totalAnswers,
-      }),
-    )
+    // Se acumula en el modo con el que se jugó, no en el que esté seleccionado ahora.
+    statsRepo.registerGame(state.play, {
+      score: state.score,
+      bestCombo: state.bestCombo,
+      correctAnswers: state.correctAnswers,
+      totalAnswers: state.totalAnswers,
+    })
+    setStatsByMode(statsRepo.loadAll())
     audio.gameOver()
     haptics.gameOver()
   }, [
     state.status,
+    state.play,
     state.score,
     state.bestCombo,
     state.correctAnswers,
@@ -193,7 +197,7 @@ export function useGameEngine(): GameEngine {
       digits: settings.digits,
       play: settings.play,
       level: settings.level,
-      record: statsRepo.load().record,
+      record: statsRepo.load(settings.play).record,
     })
   }, [audio, settings.mode, settings.digits, settings.play, settings.level, statsRepo])
 

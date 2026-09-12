@@ -105,7 +105,7 @@ es decir, un bucle con fracaso posible. Sin fracaso no hay "una partida más".
 ```bash
 npm install
 npm run dev        # servidor de desarrollo
-npm test           # 103 tests (dominio, datos e interfaz)
+npm test           # 105 tests (dominio, datos e interfaz)
 npm run typecheck  # tsc --noEmit
 npm run build      # bundle de producción en dist/
 ```
@@ -113,8 +113,18 @@ npm run build      # bundle de producción en dist/
 ## 7. Rendimiento y accesibilidad
 
 - Objetivo 60 fps constantes; las animaciones usan solo `transform` y `opacity`.
-- El canvas de partículas se pausa cuando no hay partículas vivas.
+- El canvas de partículas se pausa cuando no hay partículas vivas, y su tamaño
+  está acotado por área: a pantalla completa con densidad 2 serían 56 MB de
+  memoria gráfica en un monitor grande, para un efecto de un segundo.
+- Medido: 60-61 fps incluso con la CPU seis veces más lenta; 2.8 MB de memoria
+  JavaScript en el pico (racha alta con la lluvia de estrellas) y sin fugas tras
+  varias partidas.
 - `prefers-reduced-motion` desactiva shake y partículas sin tocar el juego.
+- El menú y la pantalla final se pueden desplazar (`.screen` con `overflow-y`),
+  porque en móviles pequeños no caben; la pantalla de juego nunca se desplaza.
+- Dos puntos de corte por **altura** (520 px y 430 px) compactan teclado y HUD
+  para el móvil en horizontal, donde la altura mínima normal de las teclas no
+  entra.
 - Sonido desactivable; el estado del juego nunca depende del audio.
 - Contraste AA en los cinco tiers de combo; el tier nunca se comunica solo por color.
 - El juego degrada sin romperse: sin `localStorage` (incógnito) juega en memoria,

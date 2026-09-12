@@ -6,7 +6,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* `safe` evita el clásico recorte por arriba del centrado en flex cuando el
+     contenido no cabe; el scroll vive aquí porque el body lo tiene bloqueado
+     para que el juego no rebote al arrastrar. */
   justify-content: center;
+  justify-content: safe center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   gap: 22px;
   padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
   text-align: center;
@@ -176,6 +182,8 @@
 .game {
   justify-content: space-between;
   gap: 0;
+  /* La pantalla de juego nunca se desplaza: todo tiene que caber. */
+  overflow: hidden;
 }
 
 .hud {
@@ -389,4 +397,71 @@
 
 .storeLink:active {
   transform: scale(0.97);
+}
+
+/*
+ * Pantallas bajas: móvil en horizontal, o ventanas muy achatadas. El teclado
+ * con su altura mínima normal no entra en 390 px de alto, así que aquí todo se
+ * compacta para que siga cabiendo sin scroll.
+ */
+@media (max-height: 520px) {
+  .screen {
+    gap: 12px;
+    padding: 10px 16px;
+  }
+
+  .title {
+    font-size: clamp(30px, 7vh, 52px);
+  }
+
+  .tagline {
+    font-size: 13px;
+  }
+
+  .statsGrid {
+    gap: 7px;
+  }
+
+  .statCard {
+    padding: 8px;
+  }
+
+  .statValue {
+    font-size: 19px;
+  }
+
+  .primaryButton {
+    padding: 13px;
+  }
+
+  .footer {
+    gap: 8px;
+  }
+}
+
+@media (max-height: 430px) {
+  .screen {
+    gap: 6px;
+    padding: 6px 12px;
+  }
+
+  .stage {
+    gap: 6px;
+  }
+
+  .footer {
+    gap: 6px;
+  }
+
+  .prompt {
+    font-size: 10px;
+  }
+
+  .quitButton {
+    font-size: 10px;
+  }
+
+  .hudLabel {
+    font-size: 9px;
+  }
 }

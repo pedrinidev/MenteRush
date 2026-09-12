@@ -175,7 +175,10 @@ describe('MenteRush end to end', () => {
     }
 
     expect(screen.getByRole('button', { name: 'OTRA VEZ' })).toBeTruthy()
-    expect(window.localStorage.getItem('menterush.v1.stats')).toContain('gamesPlayed')
+    // Las estadísticas se guardan bajo el modo con el que se jugó.
+    const guardado = window.localStorage.getItem('menterush.v2.stats')
+    expect(guardado).toContain('RETO')
+    expect(JSON.parse(guardado ?? '{}').RETO.gamesPlayed).toBe(1)
   })
 
   it('el cambio de tema se aplica al documento y se recuerda', async () => {

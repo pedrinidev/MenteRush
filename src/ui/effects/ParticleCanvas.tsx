@@ -17,6 +17,9 @@ interface Particle {
 const GRAVITY = 0.05
 const FRICTION = 0.988
 
+/** Tope de píxeles del lienzo (~10 MB de memoria gráfica). */
+const MAX_CANVAS_PIXELS = 2_500_000
+
 /**
  * Paleta de fiesta. Se mezcla con el acento de la racha para que la celebración
  * sea de colores y no un chorro monocromo del color del tier.
@@ -84,9 +87,17 @@ export function ParticleCanvas({
     if (!canvas) return
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
-      canvas.width = window.innerWidth * dpr
-      canvas.height = window.innerHeight * dpr
+      const cssPixels = window.innerWidth * window.innerHeight
+      // Un lienzo a pantalla completa con densidad 2 son 56 MB en un monitor de
+      // 2560×1440, para un efecto que dura un segundo. Se acota el área total:
+      // en móvil no cambia nada (la pantalla es pequeña) y en monitores grandes
+      // las estrellas se dibujan algo más suaves, que en formas en movimiento y
+      // que se desvanecen no se aprecia.
+      const byArea = Math.sqrt(MAX_CANVAS_PIXELS / Math.max(cssPixels, 1))
+      const dpr = Math.min(window.devicePixelRatio || 1, 2, byArea)
+
+      canvas.width = Math.round(window.innerWidth * dpr)
+      canvas.height = Math.round(window.innerHeight * dpr)
       const ctx = canvas.getContext('2d')
       ctx?.setTransform(dpr, 0, 0, dpr, 0, 0)
     }

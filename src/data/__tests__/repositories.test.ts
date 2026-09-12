@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { EMPTY_STATS, accuracyOf, createStatsRepository } from '../statsRepository'
 import { DEFAULT_SETTINGS, createSettingsRepository } from '../settingsRepository'
-import { STORAGE_KEYS, type StorageLike } from '../storageKeys'
+import { LEGACY_STATS_KEY, STORAGE_KEYS, type StorageLike } from '../storageKeys'
 
 /** Doble de `localStorage` en memoria. */
 function fakeStorage(initial: Record<string, string> = {}): StorageLike {
@@ -24,21 +24,29 @@ const hostileStorage: StorageLike = {
 
 describe('statsRepository', () => {
   it('parte de estadísticas vacías', () => {
-    expect(createStatsRepository(fakeStorage()).load()).toEqual(EMPTY_STATS)
+    expect(createStatsRepository(fakeStorage()).load('RETO')).toEqual(EMPTY_STATS)
   })
 
   it('guarda y recupera', () => {
     const storage = fakeStorage()
     const repo = createStatsRepository(storage)
-    repo.save({ ...EMPTY_STATS, record: 1200, bestCombo: 9 })
+    repo.save('RETO', { ...EMPTY_STATS, record: 1200, bestCombo: 9 })
 
-    expect(createStatsRepository(storage).load()).toMatchObject({ record: 1200, bestCombo: 9 })
+    expect(createStatsRepository(storage).load('RETO')).toMatchObject({
+      record: 1200,
+      bestCombo: 9,
+    })
   })
 
   it('acumula partidas y se queda con lo mejor', () => {
     const repo = createStatsRepository(fakeStorage())
-    repo.registerGame({ score: 500, bestCombo: 4, correctAnswers: 6, totalAnswers: 9 })
-    const stats = repo.registerGame({ score: 300, bestCombo: 7, correctAnswers: 3, totalAnswers: 5 })
+    repo.registerGame('RETO', { score: 500, bestCombo: 4, correctAnswers: 6, totalAnswers: 9 })
+    const stats = repo.registerGame('RETO', {
+      score: 300,
+      bestCombo: 7,
+      correctAnswers: 3,
+      totalAnswers: 5,
+    })
 
     expect(stats.record).toBe(500) // no retrocede
     expect(stats.bestCombo).toBe(7) // sí mejora
@@ -47,30 +55,55 @@ describe('statsRepository', () => {
     expect(stats.totalAnswers).toBe(14)
   })
 
+  it('cada modo lleva sus propias estadísticas', () => {
+    const repo = createStatsRepository(fakeStorage())
+    repo.registerGame('RETO', { score: 900, bestCombo: 8, correctAnswers: 9, totalAnswers: 11 })
+    repo.registerGame('PRACTICA', { score: 120, bestCombo: 3, correctAnswers: 7, totalAnswers: 10 })
+
+    // Un récord fácil de Práctica no puede contaminar el de Reto, ni al revés.
+    expect(repo.load('RETO').record).toBe(900)
+    expect(repo.load('PRACTICA').record).toBe(120)
+    expect(repo.load('RETO').gamesPlayed).toBe(1)
+    expect(repo.load('PRACTICA').gamesPlayed).toBe(1)
+  })
+
+  it('rescata el récord antiguo como estadísticas de Reto', () => {
+    // Antes de separar por modo solo existía este bloque, y todo era Reto.
+    const repo = createStatsRepository(
+      fakeStorage({
+        [LEGACY_STATS_KEY]: JSON.stringify({ record: 944, bestCombo: 10, gamesPlayed: 13 }),
+      }),
+    )
+    expect(repo.load('RETO')).toMatchObject({ record: 944, bestCombo: 10, gamesPlayed: 13 })
+    expect(repo.load('PRACTICA')).toEqual(EMPTY_STATS)
+  })
+
   it('ignora un JSON corrupto en vez de romper', () => {
     const repo = createStatsRepository(fakeStorage({ [STORAGE_KEYS.stats]: '{no es json' }))
-    expect(repo.load()).toEqual(EMPTY_STATS)
+    expect(repo.load('RETO')).toEqual(EMPTY_STATS)
   })
 
   it('sanea valores manipulados', () => {
     const repo = createStatsRepository(
       fakeStorage({
-        [STORAGE_KEYS.stats]: JSON.stringify({ record: -5, bestCombo: 'x', gamesPlayed: 2.7 }),
+        [STORAGE_KEYS.stats]: JSON.stringify({
+          RETO: { record: -5, bestCombo: 'x', gamesPlayed: 2.7 },
+        }),
       }),
     )
-    expect(repo.load()).toEqual({ ...EMPTY_STATS, gamesPlayed: 2 })
+    expect(repo.load('RETO')).toEqual({ ...EMPTY_STATS, gamesPlayed: 2 })
   })
 
   it('sobrevive a un almacenamiento hostil', () => {
     const repo = createStatsRepository(hostileStorage)
-    expect(repo.load()).toEqual(EMPTY_STATS)
-    expect(() => repo.save({ ...EMPTY_STATS, record: 10 })).not.toThrow()
+    expect(repo.load('RETO')).toEqual(EMPTY_STATS)
+    expect(() => repo.save('RETO', { ...EMPTY_STATS, record: 10 })).not.toThrow()
   })
 
   it('sin almacenamiento funciona en memoria durante la sesión', () => {
     const repo = createStatsRepository(null)
-    repo.save({ ...EMPTY_STATS, record: 777 })
-    expect(repo.load().record).toBe(777)
+    repo.save('RETO', { ...EMPTY_STATS, record: 777 })
+    expect(repo.load('RETO').record).toBe(777)
   })
 })
 

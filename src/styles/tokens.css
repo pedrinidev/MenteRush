@@ -80,6 +80,7 @@ body,
 }
 
 body {
+  touch-action: manipulation;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
@@ -95,6 +96,9 @@ button {
   border: none;
   background: none;
   cursor: pointer;
+  /* iOS ignora `user-scalable=no` desde hace años: sin esto, teclear rápido dos
+     cifras seguidas puede interpretarse como doble toque y hacer zoom. */
+  touch-action: manipulation;
 }
 
 /* Números y marcadores: ancho fijo para que nada baile al cambiar de cifra. */

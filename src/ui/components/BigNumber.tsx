@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import styles from './components.module.css'
 
 /** Cuánto ocupa una cifra respecto a su tamaño de fuente (medido en pantalla). */
@@ -26,7 +27,16 @@ export function BigNumber({ value }: { value: number }) {
   return (
     <div
       className={`${styles.bigNumber} ${value < 0 ? styles.negative : ''} tabular`}
-      style={{ fontSize: `min(${byWidth}vw, ${byHeight}vh)` }}
+      // Se pasan las dos unidades: la hoja de estilos usa `svh` donde existe
+      // (la altura con las barras del navegador visibles, que es la que de
+      // verdad hay en iOS) y cae a `vh` en navegadores que no la soportan.
+      style={
+        {
+          '--num-ancho': `${byWidth}vw`,
+          '--num-alto': `${byHeight}vh`,
+          '--num-alto-seguro': `${byHeight}svh`,
+        } as CSSProperties
+      }
     >
       {value}
     </div>
